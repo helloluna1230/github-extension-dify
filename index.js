@@ -26,10 +26,10 @@ app.post("/", express.json(), async (req, res) => {
     content: `Start every response with the user's name, which is @${user.data.login}`,
   });
 
-  // Use Copilot's LLM to generate a response to the user's messages, with
+  // Use Dify's API to generate a response to the user's messages, with
   // our extra system messages attached.
-  const copilotLLMResponse = await fetch(
-    "https://api.githubcopilot.com/chat/completions",
+  const difyResponse = await fetch(
+    "http://135.224.232.86/v1/chat-messages",
     {
       method: "POST",
       headers: {
@@ -37,14 +37,18 @@ app.post("/", express.json(), async (req, res) => {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        messages,
-        stream: true,
+        inputs: {},
+        query: payload.query,
+        response_mode: "streaming",
+        conversation_id: "",
+        user: user.data.login,
+        files: payload.files || []
       }),
     }
   );
 
   // Stream the response straight back to the user.
-  Readable.from(copilotLLMResponse.body).pipe(res);
+  Readable.from(difyResponse.body).pipe(res);
 })
 
 const port = Number(process.env.PORT || '3000')
